@@ -3,22 +3,22 @@
 from typing import Set
 import logging
 import math
-from AlignmentParser import AlignmentParser
-from LoadInRam import LoadInRam
-from Settings import Settings
+import AlignmentParser
+import LoadInRam
+import Settings
 
 
-class Blast8(AlignmentParser):
+class Blast8(AlignmentParser.AlignmentParser()):
     def __init__(self, file_or_lir, thr, sg) -> None:
         self.sg = sg
         self.targets: Set[str] = set()
-        self.settings = Settings.init()
+        self.settings = Settings.Settings().init()
         self.counthit = 0
         self.bufferuid: Set[str] = set()
 
         if isinstance(file_or_lir, str):
             self.read_file(file_or_lir, thr)
-        elif isinstance(file_or_lir, LoadInRam):
+        elif isinstance(file_or_lir, LoadInRam.LoadInRam()):
             self.read_data(file_or_lir, thr)
         else:
             raise ValueError("Expected either a file path or a LoadInRam instance")

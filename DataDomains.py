@@ -2,7 +2,7 @@
 
 from AlignmentResults import AlignmentResults
 from NW import NW
-from Settings import Settings
+import Settings
 import math
 
 
@@ -53,14 +53,14 @@ class DataDomains:
         seed = []
         map = {}
         domainfreq = []
-        collection = self.database[Settings.init().get_collection_frequences()]
+        collection = self.database[Settings.Settings().init().get_collection_frequences()]
         
         for ipr in qdoms:
             freq = collection.find_one({"ipr": ipr})["freq"]
             map[freq] = ipr
             seed.append(freq)
 
-        alg = Settings.init().getSeedDom()
+        alg = Settings.Settings().init().getSeedDom()
         
         if alg == "minfreq":
             seed.sort()
@@ -76,7 +76,7 @@ class DataDomains:
     def intersection(self, doms):
         inter = set()
         list_ = []
-        collection = self.database[Settings.init().get_collection_interpro()]
+        collection = self.database[Settings.Settings().init().get_collection_interpro()]
         
         for ipr in doms:
             buffer = set()
@@ -93,7 +93,7 @@ class DataDomains:
 
     def get_prot_doms(self, uid):
         map = {}
-        collection = self.database.get_collection(Settings.init().get_collectionINTERPRO())
+        collection = self.database.get_collection(Settings.Settings().init().get_collection_interpro())
 
         for doc in collection.find({"uid": uid}):
             ipr = doc["ipr"]
@@ -108,8 +108,8 @@ class DataDomains:
         return [",".join(map[p]) for p in sorted(map.keys())]
 
     def weigth_score(self, doms):
-        collection = self.database[Settings.init().getCollectionFREQUENCES()]
-    
+        collection = self.database[Settings.Settings().init().get_collection_frequences()]
+
         for ipr in doms:
             if ipr not in self.weightscore:
                 cursor = collection.find({"ipr": ipr})

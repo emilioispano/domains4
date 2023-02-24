@@ -1,8 +1,7 @@
 #!/usr/bin/python3
 
 import sys
-from pymongo import MongoClient
-from Settings import Settings
+import Settings
 
 class RetrieveProteins:
     instance = None
@@ -10,7 +9,7 @@ class RetrieveProteins:
     def __init__(self, mongo=False):
         self.inputmap = {}
         self.offset = {}
-        self.settings = Settings()
+        self.settings = Settings.Settings()
         self.db_input = self.settings.get_input_fasta()
         self.db_file = self.settings.get_fasta_db()
         self.read_index()
@@ -101,7 +100,7 @@ class RetrieveProteins:
         count = 1
         with open(outfile, 'w') as output, open(self.db_file, 'rb') as raf, open(self.db_input, 'rb') as rafinput:
             len_line = self.write_query(rafinput, output, pid)
-            collection = database[Settings.init().getCollectionUNIPROTX()]
+            collection = database[Settings.Settings().init().get_collection_uniprotx()]
             for uid in uids:
                 cursor = collection.find({"uid": uid})
                 if cursor.count() > 0:
@@ -124,7 +123,7 @@ class RetrieveProteins:
             with open(self.db_input, 'rb') as rafinput:
                 output = open(outfile, 'w')
                 lenn = self.write_query(rafinput, output, pid)
-                collection = database.get_collection(Settings.init().getCollectionUNIPROTX())
+                collection = database.get_collection(Settings.Settings().init().get_collection_uniprotx())
                 for uid in uids:
                     cursor = collection.find({"uid": uid}).limit(1)
                     if cursor.count() > 0:
@@ -148,7 +147,7 @@ class RetrieveProteins:
     def write_single_prot(self, uid, outfile, database):
         with open(self.db_file, 'rb') as raf:
             output = open(outfile, 'w')
-            collection = database.get_collection(Settings.init().getCollectionUNIPROTX())
+            collection = database.get_collection(Settings.Settings().init().get_collection_uniprotx())
             cursor = collection.find({"uid": uid}).limit(1)
             if cursor.count() > 0:
                 doc = cursor[0]

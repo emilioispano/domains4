@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 
-from typing import List, Set, Tuple, Dict
+from typing import List, Set, Dict
 from multiprocessing import Manager, Process
 import logging
-from ArgotGraph import ArgotGraph
-from DataDomains import DataDomains
-from ThreadData import ThreadData
+import ArgotGraph
+import DataDomains
+import ThreadData
 
 
 class DomainsThread(Process):
@@ -27,13 +27,13 @@ class DomainsThread(Process):
     def get_neighbors(self, map: Dict[int, Set[str]], pid: str, blast_prot: Set[str]):
         try:
             doms = self.get_domains(map)
-            dd = DataDomains(self.database, doms)
+            dd = DataDomains.DataDomains(self.database, doms)
             if not dd.get_exit():
                 uidscore = dd.get_results().getUidOver(self.nwth)
                 if uidscore:
-                    at = ArgotGraph(uidscore, pid, self.database, blast_prot, self.ident)
+                    at = ArgotGraph.ArgotGraph(uidscore, pid, self.database, blast_prot, self.ident)
                     if pid not in self.output:
-                        self.output[pid] = ThreadData(at.get_prot_clusters(), at.get_cluster())
+                        self.output[pid] = ThreadData.ThreadData(at.get_prot_clusters(), at.get_cluster())
             else:
                 logging.error(f"ERROR: suck: {pid}")
         except Exception as e:

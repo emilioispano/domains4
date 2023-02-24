@@ -1,12 +1,12 @@
 #!/usr/bin/python3
 
 from typing import List, Dict
-from Settings import Settings
+import Settings
 
 
 class NW:
     def __init__(self, x: List[str], y: List[str], weigthscore: Dict[str, float]):
-        setting = Settings.init()
+        setting = Settings.Settings().init()
         self.x = x
         self.y = y
         self.weigthscore = weigthscore

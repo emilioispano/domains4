@@ -11,9 +11,9 @@ from networkx.readwrite import gml
 from Settings import Settings
 from RetrieveProteins import RetrieveProteins
 import Utilities as util
-from Blast8 import Blast8
-from LoadInRam import LoadInRam
-from SSNetwork import SSNetwork
+import Blast8
+import LoadInRam
+import SSNetwork
 
 
 class ArgotGraph:
@@ -85,11 +85,11 @@ class ArgotGraph:
             if self.settings.is_rom_used():
                 outfile = self.filein + "_" + str(thread_id) + ".aln"
                 self.run_glsearch_alignment(fileq, self.filein, outfile)
-                b8 = Blast8(outfile, self.settings.get_similarity_thr(), self.sg)
+                b8 = Blast8.Blast8(outfile, self.settings.get_similarity_thr(), self.sg)
             else:
-                lir = LoadInRam()
+                lir = LoadInRam.LoadInRam()
                 self.run_glsearch_alignment_lir(fileq, self.filein, lir)
-                b8 = Blast8(lir, self.settings.get_similarity_thr(), self.sg)
+                b8 = Blast8.Blast8(lir, self.settings.get_similarity_thr(), self.sg)
                 lir.close()
 
             self.sg = b8.get_graph()
@@ -127,7 +127,7 @@ class ArgotGraph:
 
         lir = None
         if not settings.isRomUsed():
-            lir = LoadInRam()
+            lir = LoadInRam.LoadInRam()
 
         for tid in targets:
             tidq = os.path.join(dir, tid)
@@ -139,10 +139,10 @@ class ArgotGraph:
             if settings.isRomUsed():
                 outfile = os.path.join(dir, tid + ".aln")
                 self.run_mmsearch_alignment(tidq, self.filein, outfile, tmp)
-                b8 = Blast8(outfile, settings.getSimilarityTHR(), self.sg)
+                b8 = Blast8.Blast8(outfile, settings.getSimilarityTHR(), self.sg)
             else:
                 self.run_mmsearch_alignment_lir(tidq, self.filein, lir, tmp)
-                b8 = Blast8(lir, settings.getSimilarityTHR(), self.sg)
+                b8 = Blast8.Blast8(lir, settings.getSimilarityTHR(), self.sg)
                 if lir:
                     lir.reset()
 
@@ -166,7 +166,7 @@ class ArgotGraph:
         return self.buffer
 
     def modularity(self, pid: str, sg) -> Set[str]:
-        ssn = SSNetwork(pid, sg)
+        ssn = SSNetwork.SSNetwork(pid, sg)
         ids = ssn.get_cluster()
         tmp = set(ids)
         if pid in tmp:

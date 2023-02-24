@@ -7,19 +7,19 @@ import multiprocessing
 import os
 import sys
 
-from DomainsThread import DomainsThread
-from Settings import Settings
-from ThreadData import ThreadData
+import DomainsThread
+import Settings
+import ThreadData
 import Utilities
-from OptionsParser import OptionsParser
+import OptionsParser
 
 
 class Domains:
     def __init__(self, args: List[str]) -> None:
-        self.args = OptionsParser()
-        self.setting = Settings.init()
+        self.args = OptionsParser.OptionsParser()
+        self.setting = Settings.Settings().init()
 
-        if not OptionsParser.parse_options(self.args, self.setting):
+        if not OptionsParser.OptionsParser().parse_options(self.setting):
             self.args.print_help()
             sys.exit(1)
 
@@ -58,7 +58,7 @@ class Domains:
                 templates_for_thread_list[list_num].append(template)
 
         for i in range(len(templates_for_thread_list)):
-            thread_list.append(DomainsThread(domains_map, blast_prot_map, templates_for_thread_list[i], self.database, self.setting.get_nwth()))
+            thread_list.append(DomainsThread.DomainsThread(domains_map, blast_prot_map, templates_for_thread_list[i], self.database, self.setting.get_nwth()))
 
         results = Utilities.merge_thread_results(thread_list)
 
