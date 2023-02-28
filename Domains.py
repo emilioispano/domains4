@@ -1,26 +1,22 @@
 #!/usr/bin/python3
 
 from pymongo import MongoClient
-from pymongo.collection import Collection
-from typing import List, Dict, Set
 import multiprocessing
 import os
 import sys
 
 import DomainsThread
 import Settings
-import ThreadData
 import Utilities
 import OptionsParser
 
 
 class Domains:
-    def __init__(self, args: List[str]) -> None:
+    def __init__(self):
         self.args = OptionsParser.OptionsParser()
         self.setting = Settings.Settings().init()
 
         if not OptionsParser.OptionsParser().parse_options(self.setting):
-            self.args.print_help()
             sys.exit(1)
 
         self.setting.set_work_dir()
@@ -29,15 +25,15 @@ class Domains:
         mongo_client = MongoClient(self.setting.get_host())
         self.database = mongo_client.get_database(self.setting.get_db())
 
-    def run_domains(self) -> None:
+    def run_domains(self):
         cores = multiprocessing.cpu_count()
         if self.setting.get_threads() > cores:
             raise ValueError(f"Exceeded the maximum number of available processors. Available processors: {cores}.")
         self.setting.set_num_threads_for_external_process(cores)
         os.environ["JAVA_OPTS"] = f"-Djava.util.concurrent.ForkJoinPool.common.parallelism={self.setting.get_threads()}"
-        templates_for_thread_list: List[List[str]] = []
-        blast_prot_map: Dict[str, Set[str]] = {}
-        thread_list: List[DomainsThread] = []
+        templates_for_thread_list = []
+        blast_prot_map = {}
+        thread_list = []
 
         domains_map = Utilities.read_dom_file(self.setting.get_dom_file())
         templates = list(domains_map.keys())
@@ -66,7 +62,7 @@ class Domains:
 
         self.setting.get_out().close()
 
-    def write_results(self, results: Dict[str, ThreadData], collgoa: Collection) -> None:
+    def write_results(self, results, collgoa):
         for template in results.keys():
             self.setting.get_out().write(f">{template}\n")
 

@@ -1,16 +1,18 @@
-from typing import TypeVar, List, Dict, Any, Set, Type
-from jgrapht.alg.interfaces import SpanningTreeAlgorithm
-from jgrapht.graph import DefaultWeightedEdge, SimpleWeightedGraph, AsWeightedGraph
+from py4j import java_gateway
 import numpy as np
 import MakeClusters
 
-T = TypeVar('T')
+gateway = java_gateway.JavaGateway().launch_gateway(port=0, classpath='jgrapht-core-1.3.0.jar')
+SpanningTreeAlgorithm = gateway.jvm.org.jgrapht.alg.interfaces.SpanningTreeAlgorithm
+DefaultWeightedEdge = gateway.jvm.org.jgrapht.graph.DefaultWeightedEdge
+SimpleWeightedGraph = gateway.jvm.org.jgrapht.graph.SimpleWeightedGraph
+AsWeightedGraph = gateway.jvm.org.jgrapht.graph.AsWeightedGraph
 
 
 class Modularity:
-    def __init__(self, graph: AsWeightedGraph[T, DefaultWeightedEdge], c: Type[T]) -> None:
-        self.map: Dict[T, int] = {}
-        self.buffer: List[SimpleWeightedGraph[T, DefaultWeightedEdge]] = []
+    def __init__(self, graph, c):
+        self.map = {}
+        self.buffer = []
         edges = np.zeros(graph.edge_set().size() * 2, dtype=int)
         index = np.zeros(graph.vertex_set().size(), dtype=c)
 
@@ -35,7 +37,7 @@ class Modularity:
         self.map = {}  # deleting
         ss = MakeClusters.MakeClusters()
         cluster = ss.get_fast_greedy_res(edges, index.size)
-        memberships: Dict[int, Set[T]] = {}
+        memberships = {}
         for i in range(cluster.size):
             if cluster[i] in memberships:
                 memberships[cluster[i]].add(index[i])
@@ -59,5 +61,5 @@ class Modularity:
                     g.set_edge_weight(dwe, graph.get_edge_weight(e))
             self.buffer.append(g)
 
-    def get_clusters(self) -> List[SimpleWeightedGraph[T, DefaultWeightedEdge]]:
+    def get_clusters(self):
         return self.buffer

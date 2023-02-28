@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class OntNamespace(Enum):
     molecular_function = 1
     biological_process = 2

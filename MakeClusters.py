@@ -4,7 +4,7 @@ from ctypes import CDLL, c_int, POINTER
 
 # Define the Igraph interface
 class Igraph:
-    def fast_greedy(self, edges, res, lenn: c_int):
+    def fast_greedy(self, edges, res, lenn):
         pass
 
 
@@ -25,7 +25,7 @@ class MakeClusters:
         # Set the library path and load the Igraph interface
         os.environ['PATH'] = os.environ.get('PATH', '') + os.pathsep + os.path.abspath('libgraph')
         igraph = Igraph()
-        
+
         # Call the fastGreedy function and return the result
         res = (c_int * reslen)()
         igraph.fast_greedy(edges, res, len(edges))

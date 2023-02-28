@@ -3,15 +3,9 @@
 import logging
 from math import log
 import os
-from typing import Dict, List, Set
-from pymongo.collection import Collection
-from pymongo.database import Database
-from Settings import Settings
-from ThreadData import ThreadData
-from DomainsThread import DomainsThread
 
 
-def read_dom_file(file: str) -> Dict[str, Dict[int, Set[str]]]:
+def read_dom_file(file):
     """
     Reads a file containing domain information and returns a dictionary mapping a protein ID to a dictionary containing
     information about its domains.
@@ -19,7 +13,7 @@ def read_dom_file(file: str) -> Dict[str, Dict[int, Set[str]]]:
     :param file: the file to read
     :return: a dictionary mapping a protein ID to a dictionary containing information about its domains
     """
-    map = {}
+    mapp = {}
     with open(file) as f:
         for line in f:
             line = line.strip()
@@ -31,16 +25,16 @@ def read_dom_file(file: str) -> Dict[str, Dict[int, Set[str]]]:
             pid = data[0]
             ipr = data[11]
             p = int(data[6])
-            if pid not in map:
-                map[pid] = {}
-            if p in map[pid]:
-                map[pid][p].add(ipr)
+            if pid not in mapp:
+                mapp[pid] = {}
+            if p in mapp[pid]:
+                mapp[pid][p].add(ipr)
             else:
-                map[pid][p] = {ipr}
-    return map
+                mapp[pid][p] = {ipr}
+    return mapp
 
 
-def parse_blast_file(file: str, setting: Settings) -> Dict[str, Set[str]]:
+def parse_blast_file(file, setting):
     """
     Parses a BLAST file and returns a dictionary mapping a template sequence ID to a set of subject sequence IDs.
 
@@ -64,7 +58,7 @@ def parse_blast_file(file: str, setting: Settings) -> Dict[str, Set[str]]:
     return blast_map
 
 
-def merge_thread_results(domains_thread_results: Collection[DomainsThread]) -> Dict[str, ThreadData]:
+def merge_thread_results(domains_thread_results):
     results = {}
 
     for dt in domains_thread_results:
@@ -76,7 +70,7 @@ def merge_thread_results(domains_thread_results: Collection[DomainsThread]) -> D
     return results
 
 
-def delete_directory(path: str) -> None:
+def delete_directory(path):
     """
     Deletes a directory and all its contents.
 
@@ -90,7 +84,7 @@ def delete_directory(path: str) -> None:
     os.rmdir(path)
 
 
-def clean_directory(path: str, start_dir: str) -> None:
+def clean_directory(path, start_dir):
     """
     Deletes all the contents of a directory except the starting directory itself.
     """
@@ -99,32 +93,32 @@ def clean_directory(path: str, start_dir: str) -> None:
             os.remove(os.path.join(root, file))
         for dir in dirs:
             if os.path.abspath(os.path.join(root, dir)) != start_dir:
-                shutil.rmtree(os.path.join(root, dir))
+                pass # shutil.rmtree(os.path.join(root, dir))
 
 
-def delete_file(file: str) -> None:
+def delete_file(file):
     os.remove(file)
 
 
-def create_directory(dir: str) -> None:
+def create_directory(dir):
     os.makedirs(dir, exist_ok=True)
 
 
-def create_file(file: str) -> None:
+def create_file(file):
     open(file, 'a').close()
 
 
-def directory_exists(dir: str) -> bool:
+def directory_exists(dir):
     return os.path.exists(dir)
 
 
-def file_exists(file: str) -> bool:
+def file_exists(file):
     return os.path.exists(file)
 
 
-def sort_uids(map: Dict[str, float]) -> List[str]:
-    tmp: Dict[float, List[str]] = {}
-    uids: List[str] = []
+def sort_uids(map):
+    tmp = {}
+    uids = []
 
     for uid, t in map.items():
         if t in tmp:
@@ -142,11 +136,11 @@ def sort_uids(map: Dict[str, float]) -> List[str]:
     return uids
 
 
-def read_clustering_data(file: str, database: Database, setting: dict) -> Dict[str, dict]:
-    clusters: Dict[str, dict] = {}
-    prot_ids: Set[str] = set()
-    go_ids: Set[str] = set()
-    goa_coll: Collection = database.get_collection(setting['collectionGOA'])
+def read_clustering_data(file, database, setting):
+    clusters = {}
+    prot_ids = set()
+    go_ids = set()
+    goa_coll = database.get_collection(setting['collectionGOA'])
 
     if os.path.exists(file):
         with open(file) as f:
@@ -174,7 +168,7 @@ def read_clustering_data(file: str, database: Database, setting: dict) -> Dict[s
     return clusters
 
 
-def get_repr_to_removes(repr_score: Dict[str, float], setting: dict) -> Set[str]:
+def get_repr_to_removes(repr_score, setting):
     if len(repr_score.keys()) > setting['maxNumRepr']:
         sorted_repr = sort_uids(repr_score)
         return set(sorted_repr[:len(sorted_repr) - setting['maxNumRepr']])
@@ -182,7 +176,7 @@ def get_repr_to_removes(repr_score: Dict[str, float], setting: dict) -> Set[str]
         return set()
 
 
-def convert_sec_to_day(n: int) -> None:
+def convert_sec_to_day(n):
     start_value = n
 
     days = n // (24 * 3600)

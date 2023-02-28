@@ -9,7 +9,7 @@ class GONode(Node):
         self.comment = None
         self.namespace = None
         self.disjoint = set()
-        self.intDisjoint = False
+        self.int_disjoint = False
 
     def set_namespace(self, namespace):
         if namespace == "biological_process":
@@ -47,10 +47,10 @@ class GONode(Node):
         return goid in self.disjoint
 
     def set_int_disjoint(self, disj):
-        self.intDisjoint = disj
+        self.int_disjoint = disj
 
     def is_int_disjoint(self):
-        return self.intDisjoint
+        return self.int_disjoint
 
     def clean(self):
         super().clean()

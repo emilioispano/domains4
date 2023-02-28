@@ -46,29 +46,29 @@ class DataDomains:
 
     def select_seed_dom(self, qdoms):
         numd = 1
-        
+
         if len(qdoms) > 1:
             numd = len(qdoms) // 2
-        
+
         seed = []
         map = {}
         domainfreq = []
         collection = self.database[Settings.Settings().init().get_collection_frequences()]
-        
+
         for ipr in qdoms:
             freq = collection.find_one({"ipr": ipr})["freq"]
             map[freq] = ipr
             seed.append(freq)
 
-        alg = Settings.Settings().init().getSeedDom()
-        
+        alg = Settings.Settings().init().get_seed_dom()
+
         if alg == "minfreq":
             seed.sort()
         elif alg == "maxfreq":
             seed.sort(reverse=True)
         elif alg == "all":
             numd = len(seed)
-        
+
         for d in seed[:numd]:
             domainfreq.append(map[d])
         return domainfreq
@@ -77,22 +77,22 @@ class DataDomains:
         inter = set()
         list_ = []
         collection = self.database[Settings.Settings().init().get_collection_interpro()]
-        
+
         for ipr in doms:
             buffer = set()
             for doc in collection.find({"ipr": ipr}):
                 buffer.add(doc["uid"])
             list_.append(buffer)
-        
+
         inter = list_[0]
-        
+
         if len(list_) > 1:
             for i in range(1, len(list_)):
                 inter &= list_[i]
         return inter
 
     def get_prot_doms(self, uid):
-        map = {}
+        mapp = {}
         collection = self.database.get_collection(Settings.Settings().init().get_collection_interpro())
 
         for doc in collection.find({"uid": uid}):
@@ -100,12 +100,12 @@ class DataDomains:
             pos_list = doc["pos"]
 
             for p in pos_list:
-                if p in map:
-                    map[p].add(ipr)
+                if p in mapp:
+                    mapp[p].add(ipr)
                 else:
-                    map[p] = {ipr}
+                    mapp[p] = {ipr}
 
-        return [",".join(map[p]) for p in sorted(map.keys())]
+        return [",".join(mapp[p]) for p in sorted(mapp.keys())]
 
     def weigth_score(self, doms):
         collection = self.database[Settings.Settings().init().get_collection_frequences()]

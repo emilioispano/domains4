@@ -2,9 +2,9 @@ class BMMDistance:
     def __init__(self, distance_method):
         self.distance_method = distance_method
 
-    def semantic_similarity(self, list1, list2) -> float:
+    def semantic_similarity(self, list1, list2):
         simat = [[0.0 for _ in range(len(list2))] for _ in range(len(list1))]
-        
+
         for i in range(len(list1)):
             n = list1[i]
             for j in range(len(list2)):

@@ -1,17 +1,13 @@
 from rdflib import Graph, Namespace, OWL
-from typing import TypeVar, List, Tuple, Set, Dict
 import NodeNotFoundException
 import Relation
 import NodeFactory
 import GONode
-import Node
 import OntNamespace
 import Direction
 import NodeExt
 import Edge
 import logging
-
-T = TypeVar('T')
 
 
 class GOGraphOWL:
@@ -39,7 +35,7 @@ class GOGraphOWL:
         localname = localname.replace('_', ':')
         if localname.startswith("GO:"):
             ontpr = self.model.getOntProperty("http://www.geneontology.org/formats/oboInOwl#hasOBONamespace")
-            namespace = ontclass.getPropertyValue(ontpr)
+            namespace = ontclass.get_property_value(ontpr)
             if namespace is not None:
                 if localname in self.node_map:
                     self.gonode = self.node_map[localname]
@@ -47,8 +43,8 @@ class GOGraphOWL:
                     self.gonode = self.create_gonode(localname)
                 self.gonode.setNamespace(str(namespace))
                 ontpr = self.model.getOntProperty("http://www.w3.org/2000/01/rdf-schema#label")
-                label = ontclass.getPropertyValue(ontpr)
-                self.gonode.setComment(str(label))
+                label = ontclass.get_property_value(ontpr)
+                self.gonode.set_comment(str(label))
                 iterst = ontclass.listProperties()
 
                 while iterst.hasNext():
@@ -133,7 +129,8 @@ class GOGraphOWL:
                 self.node_map[ontid] = extn
             self.set_node(self.gonode, extn, rel)
 
-    def set_node(self, parent, child, rel):
+    @staticmethod
+    def set_node(parent, child, rel):
         if parent.contains_child(child) and child.contains_parent(parent):
             return
 
@@ -155,13 +152,16 @@ class GOGraphOWL:
     def get_node_map(self):
         return self.node_map
 
-    def get_parents(self, node):
+    @staticmethod
+    def get_parents(node):
         return node.get_parents()
 
-    def get_children(self, node):
+    @staticmethod
+    def get_children(node):
         return node.get_children()
 
-    def get_go_children(self, node):
+    @staticmethod
+    def get_go_children(node):
         listt = []
         for e in node.get_children():
             if Relation.Relation().get_relation(e.get_relationship_type()) != Direction.Direction.propagationUp:
@@ -169,7 +169,8 @@ class GOGraphOWL:
                     listt.append(e)
         return listt
 
-    def get_go_parents(self, node):
+    @staticmethod
+    def get_go_parents(node):
         listt = []
         for e in node.get_parents():
             if Relation.Relation().get_relation(e.get_relationship_type()) != Direction.Direction.propagationDown:
@@ -253,10 +254,10 @@ class GOGraphOWL:
                     buffer.add(ontid)
                     for edge in n.get_parents():
                         if edge.get_node().get_ont_id() not in buffer:
-                            fw.write(f"{ontid}\t{edge.getRelationshipType()}\t{edge.get_node().get_ont_id()}\n")
+                            fw.write(f"{ontid}\t{edge.get_relationship_type()}\t{edge.get_node().get_ont_id()}\n")
                     for edge in n.get_children():
                         if edge.get_node().get_ont_id() not in buffer:
-                            fw.write(f"{edge.get_node().get_ont_id()}\t{edge.getRelationshipType()}\t{ontid}\n")
+                            fw.write(f"{edge.get_node().get_ont_id()}\t{edge.get_relationship_type()}\t{ontid}\n")
         except IOError as ex:
             logging.getLogger(GOGraphOWL.__name__).log(logging.Level.SEVERE, None, ex)
 
@@ -265,9 +266,9 @@ class GOGraphOWL:
             with open("dataEdge.txt", "w") as fw:
                 for ontid in self.node_map.keys():
                     n = self.node_map[ontid]
-                    if isinstance(n, NodeExt.NodeExt()) and len(n.getParents()) > 1:
-                        fw.write(n.getOntID())
-                        for edge in n.getParents():
+                    if isinstance(n, NodeExt.NodeExt()) and len(n.get_parents()) > 1:
+                        fw.write(n.get_ont_id())
+                        for edge in n.get_parents():
                             fw.write(f"\t{edge.get_node().get_ont_id()}")
                         fw.write("\n")
         except IOError as ex:
@@ -288,16 +289,14 @@ class GOGraphOWL:
                 for e in buffer:
                     node.remove_parent(e)
 
-    def get_node(self, ontid: str) -> T:
-        n = None
+    def get_node(self, ontid):
         if ontid in self.node_map:
             n = self.node_map[ontid]
         else:
             raise NodeNotFoundException.NodeNotFoundException("The Ontology ID " + ontid + " is not present in the current ontology.")
         return n
 
-    def get_go_node(self, goid: str) -> T:
-        n = None
+    def get_go_node(self, goid):
         if goid in self.node_map:
             n = self.node_map[goid]
             if isinstance(n, GONode.GONode()):
@@ -306,57 +305,55 @@ class GOGraphOWL:
             raise NodeNotFoundException.NodeNotFoundException("The GO ID " + goid + " is not present in the current ontology.")
         return None
 
-    def get_ancestors_of(self, node) -> List[T]:
+    def get_ancestors_of(self, node):
         anc = []
-        # anc.append(node)
         self.browse_ancestors(anc, node)
         return anc
 
-    def browse_ancestors(self, anc: List[T], node: Node):
+    def browse_ancestors(self, anc, node):
         if not node.is_root():
             for e in node.get_parents():
-                if self.relation.getRelation(e.getRelationshipType()) != Direction.Direction.propagationDown:
+                if self.relation.getRelation(e.get_relationship_type()) != Direction.Direction.propagationDown:
                     if isinstance(e.get_node(), GONode.GONode()):
                         anc.append(e.get_node())
                     self.browse_ancestors(anc, e.get_node())
 
-    def get_all_go_descendants(self, n: T) -> Set[T]:
+    def get_all_go_descendants(self, n):
         listt = set()
-        if not n.isLeaf():
-            for e in n.getChildren():
+        if not n.is_leaf():
+            for e in n.get_children():
                 if isinstance(e.get_node(), GONode.GONode()):
                     self.walk_descendants(e.get_node(), listt)
         return listt
 
-    def walk_descendants(self, n: T, listt: Set[T]):
+    def walk_descendants(self, n, listt):
         listt.add(n)
-        if not n.isLeaf():
-            for e in n.getChildren():
+        if not n.is_leaf():
+            for e in n.get_children():
                 if isinstance(e.get_node(), GONode.GONode()):
-                    if self.relation.getRelation(e.getRelationshipType()) != Direction.Direction.propagationUp:
+                    if self.relation.get_relation(e.get_relationship_type()) != Direction.Direction.propagationUp:
                         self.walk_descendants(e.get_node(), listt)
 
-    def get_all_go_ancestors(self, n: T) -> Set[T]:
+    def get_all_go_ancestors(self, n):
         listt = set()
-        if not n.isRoot():
-            for e in n.getParents():
+        if not n.is_root():
+            for e in n.get_parents():
                 if isinstance(e.get_node(), GONode.GONode()):
                     self.walk_ancestors(e.get_node(), listt)
         return listt
 
-    def walk_ancestors(self, n: T, listt: Set[T]):
+    def walk_ancestors(self, n, listt):
         listt.add(n)
-        # print(n.getOntID())
-        if not n.isRoot():
-            for e in n.getParents():
+        if not n.is_root():
+            for e in n.get_parents():
                 if isinstance(e.get_node(), GONode.GONode()):
-                    if self.relation.getRelation(e.getRelationshipType()) != Direction.Direction.propagationDown:
+                    if self.relation.get_relation(e.get_relationship_type()) != Direction.Direction.propagationDown:
                         self.walk_ancestors(e.get_node(), listt)
 
-    def exists(self, ontid: str) -> bool:
+    def exists(self, ontid):
         return ontid in self.node_map
 
-    def get_root(self, namespace: OntNamespace) -> T:
+    def get_root(self, namespace):
         gid = ""
         root = None
         if namespace == OntNamespace.OntNamespace.molecular_function:

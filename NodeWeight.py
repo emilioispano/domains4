@@ -1,6 +1,7 @@
 import NodeFreq
 from decimal import Decimal
 
+
 class NodeWeight(NodeFreq.NodeFreq()):
     def __init__(self):
         super().__init__()

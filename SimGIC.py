@@ -1,14 +1,11 @@
-import Distance
-
-
-class SimGIC(Distance.Distance()):
-    def __init__(self) -> None:
+class SimGIC:
+    def __init__(self):
         self.graph = None
 
-    def set_graph_owl(self, graph) -> None:
+    def set_graph_owl(self, graph):
         self.graph = graph
 
-    def compute_distance(self, list1, list2, simlimit=None) -> float:
+    def compute_distance(self, list1, list2, simlimit=None):
         parentset1 = set()
         parentset2 = set()
 
@@ -34,15 +31,15 @@ class SimGIC(Distance.Distance()):
                 return 0.0
 
     @staticmethod
-    def get_max_distance() -> float:
+    def get_max_distance():
         return 1.0
 
     @staticmethod
-    def get_min_distance() -> float:
+    def get_min_distance():
         return 0.0
 
     @staticmethod
-    def similarity(parentset1, parentset2) -> float:
+    def similarity(parentset1, parentset2):
         union = set()
         sumunion = 0.0
         suminter = 0.0

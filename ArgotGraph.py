@@ -3,7 +3,6 @@
 import os
 import math
 import random
-from typing import List, Set
 import subprocess
 import networkx as nx
 from networkx.readwrite import gml
@@ -21,7 +20,7 @@ class ArgotGraph:
         self.settings = Settings.init()
         self.filein = None
         self.retparam = None
-        self.workdir = self.settings.workdir
+        self.work_dir = self.settings.work_dir
         self.iternum = 0
         self.sg = None
         self.database = database
@@ -39,15 +38,15 @@ class ArgotGraph:
 
         self.outfile = None
 
-        self.workDir = self.settings.get_work_dir() + "/" + str(thread_id)
-        fileInClust = self.workDir + "/" + pid + "_" + self.randomseed + ".fa.tmp"
-        self.filein = self.workDir + "/" + pid + "_" + self.randomseed + ".fa"
+        self.work_dir = self.settings.get_work_dir() + "/" + str(thread_id)
+        file_in_clust = self.work_dir + "/" + pid + "_" + self.randomseed + ".fa.tmp"
+        self.filein = self.work_dir + "/" + pid + "_" + self.randomseed + ".fa"
         fileq = self.filein + "_" + str(thread_id) + ".q"
         filenwscore = self.filein + ".nwscore"
-        tmpClust = os.path.join(self.workDir, "mmclust_tmp")
-        outClust = self.workDir + "/" + pid + "_output"
+        tmp_clust = os.path.join(self.work_dir, "mmclust_tmp")
+        out_clust = self.work_dir + "/" + pid + "_output"
 
-        util.create_directory(self.workDir)
+        util.create_directory(self.work_dir)
 
         if blast_prot is not None and len(blast_prot) > 0:
             for prot in blast_prot:
@@ -58,26 +57,26 @@ class ArgotGraph:
         else:
             uids = list(uidscore.keys())
 
-        self.retparam.write_prot_file(uids, fileInClust, pid, database)
+        self.retparam.write_prot_file(uids, file_in_clust, pid, database)
 
-        self.run_mmlin_clust(fileInClust, outClust, tmpClust)
-        self.protClusters = util.read_clustering_data(outClust + "_cluster.tsv", self.database, self.settings)
+        self.run_mmlin_clust(file_in_clust, out_clust, tmp_clust)
+        self.prot_clusters = util.read_clustering_data(out_clust + "_cluster.tsv", self.database, self.settings)
 
-        if len(self.protClusters.keys()) > 0:
-            for reprId in self.protClusters.keys():
+        if len(self.prot_clusters.keys()) > 0:
+            for reprId in self.prot_clusters.keys():
                 self.repr_score[reprId] = uidscore[reprId]
 
-            util.delete_file(fileInClust)
+            util.delete_file(file_in_clust)
 
-            reprProtIds = list(self.protClusters.keys())
-            self.retparam.write_prot_file_repr(reprProtIds, self.filein, pid, database)
+            repr_rot_ids = list(self.prot_clusters.keys())
+            self.retparam.write_prot_file_repr(repr_rot_ids, self.filein, pid, database)
 
             with open(filenwscore, "w") as outputnwscore:
                 for p in uids:
                     outputnwscore.write(p + "\t" + str(uidscore[p]) + "\n")
 
-            if not os.path.exists(tmpClust):
-                os.makedirs(tmpClust)
+            if not os.path.exists(tmp_clust):
+                os.makedirs(tmp_clust)
 
             with open(self.settings.get_input_fasta(), "rb") as rafinput, open(fileq, "w") as output:
                 self.retparam.write_query(rafinput, output, pid)
@@ -96,10 +95,10 @@ class ArgotGraph:
             targets = b8.get_targets()
 
             if self.settings.get_max_iteration() > 0 and len(targets) > 0:
-                dir = os.path.join(self.workdir, str(self.randomseed))
-                os.mkdir(dir)
-                self.deep_search(dir, targets, self.database, self.settings)
-                for uid in self.modularity(pid, self.sg):
+                dirr = os.path.join(self.work_dir, str(self.randomseed))
+                os.mkdir(dirr)
+                self.deep_search(dirr, targets, self.database, self.settings)
+                for uid in self.modularity(self.sg):
                     score = 0.0
                     graphpath = nx.shortest_path(self.sg, source=uid, target=pid, weight='weight')
                     ledge = [self.sg[u][v]['weight'] for u, v in zip(graphpath, graphpath[1:])]
@@ -120,29 +119,29 @@ class ArgotGraph:
 
             os.remove(self.filein)
 
-    def deep_search(self, dir: str, targets: Set[str], database: str, settings) -> Set[str]:
+    def deep_search(self, dirr, targets, database, settings):
         deeptargets = set()
         global iternum
         iternum += 1
 
         lir = None
-        if not settings.isRomUsed():
+        if not settings.is_rom_used():
             lir = LoadInRam.LoadInRam()
 
         for tid in targets:
-            tidq = os.path.join(dir, tid)
-            self.retparam.writeSingleProt(tid, tidq, database)
-            tmp = os.path.join(self.workDir, "mmseq_tmp")
+            tidq = os.path.join(dirr, tid)
+            self.retparam.write_single_prot(tid, tidq, database)
+            tmp = os.path.join(self.work_dir, "mmseq_tmp")
             if not os.path.exists(tmp):
                 os.mkdir(tmp)
 
-            if settings.isRomUsed():
-                outfile = os.path.join(dir, tid + ".aln")
+            if settings.is_rom_used():
+                outfile = os.path.join(dirr, tid + ".aln")
                 self.run_mmsearch_alignment(tidq, self.filein, outfile, tmp)
-                b8 = Blast8.Blast8(outfile, settings.getSimilarityTHR(), self.sg)
+                b8 = Blast8.Blast8(outfile, settings.get_similarity_thr(), self.sg)
             else:
                 self.run_mmsearch_alignment_lir(tidq, self.filein, lir, tmp)
-                b8 = Blast8.Blast8(lir, settings.getSimilarityTHR(), self.sg)
+                b8 = Blast8.Blast8(lir, settings.get_similarity_thr(), self.sg)
                 if lir:
                     lir.reset()
 
@@ -154,18 +153,19 @@ class ArgotGraph:
 
             self.buffer.update(deeptargets)
 
-        if iternum <= settings.getMaxITERATION() and deeptargets:
+        if iternum <= settings.get_max_iteration() and deeptargets:
             if settings.isPrintgml():
                 self.print_gml(iternum)
 
-            self.deep_search(dir, deeptargets, database, settings)
+            self.deep_search(dirr, deeptargets, database, settings)
 
         if lir:
             lir.close()
 
         return self.buffer
 
-    def modularity(self, pid: str, sg) -> Set[str]:
+    @staticmethod
+    def modularity(pid, sg):
         ssn = SSNetwork.SSNetwork(pid, sg)
         ids = ssn.get_cluster()
         tmp = set(ids)
@@ -173,7 +173,8 @@ class ArgotGraph:
             tmp.remove(pid)
         return tmp
 
-    def to_score(self, evalue: float) -> float:
+    @staticmethod
+    def to_score(evalue):
         if evalue == 0.0:
             return 300
 
@@ -184,11 +185,11 @@ class ArgotGraph:
 
         return score
 
-    def run_cmd(self, listargs: List[str], lir=None) -> bool:
+    def run_cmd(self, listargs, lir=None):
         pb = subprocess.Popen(listargs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         if lir is None:
-            log = os.path.join(self.workDir, "log")
+            log = os.path.join(self.work_dir, "log")
 
             with open(log, "wb") as f:
                 for line in pb.stdout:
@@ -208,9 +209,9 @@ class ArgotGraph:
 
         return exitvalue == 0
 
-    def run_glsearch_alignment(self, fileq: str, filein: str, outfile: str, num_threads=1) -> bool:
+    def run_glsearch_alignment(self, fileq, filein, outfile, num_threads=1):
         selfalignargs = [
-            self.settings.getGLSearchAlignmentCMD(),
+            self.settings.get_glsearch_alignment_cmd(),
             fileq,
             filein,
             "-m",
@@ -222,9 +223,9 @@ class ArgotGraph:
         ]
         return self.run_cmd(selfalignargs)
 
-    def run_glsearch_alignment_lir(self, fileq: str, filein: str, lir, num_threads=1) -> bool:
+    def run_glsearch_alignment_lir(self, fileq, filein, lir, num_threads=1):
         selfalignargs = [
-            self.settings.getGLSearchAlignmentCMD(),
+            self.settings.get_glsearch_alignment_cmd(),
             "-m",
             "8",
             "-T",
@@ -234,9 +235,9 @@ class ArgotGraph:
         ]
         return self.run_cmd(selfalignargs, lir)
 
-    def run_mmsearch_alignment(self, fileq: str, filein: str, outfile: str, tmp_dir: str, num_threads=1) -> bool:
+    def run_mmsearch_alignment(self, fileq, filein, outfile, tmp_dir, num_threads=1):
         selfalignargs = [
-            self.settings.getMMSearchAlignmentCMD(),
+            self.settings.get_mmsearch_alignment_cmd(),
             "easy-search",
             "--search-type",
             "1",
@@ -252,9 +253,9 @@ class ArgotGraph:
             util.delete_directory(tmp_dir)
         return b
 
-    def run_mmsearch_alignment_lir(self, fileq: str, filein: str, lir, tmp_dir: str, num_threads=1) -> bool:
+    def run_mmsearch_alignment_lir(self, fileq, filein, lir, tmp_dir, num_threads=1):
         selfalignargs = [
-            self.settings.getMMSearchAlignmentCMD(),
+            self.settings.get_mmsearch_alignment_cmd(),
             "easy-search",
             "--search-type",
             "1",
@@ -269,9 +270,9 @@ class ArgotGraph:
             util.delete_directory(tmp_dir)
         return b
 
-    def run_mmlin_clust(self, filein: str, outfile: str, tmp_dir: str, num_threads=1) -> bool:
+    def run_mmlin_clust(self, filein, outfile, tmp_dir, num_threads=1):
         selfalignargs = [
-            self.settings.getMMSearchAlignmentCMD(),
+            self.settings.get_mmsearch_alignment_cmd(),
             "easy-linclust",
             "--min-seq-id",
             "0.90",
@@ -286,7 +287,7 @@ class ArgotGraph:
             util.delete_directory(tmp_dir)
         return b
 
-    def get_random_seed(self) -> str:
+    def get_random_seed(self):
         saltchars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
         salt = "".join(random.choice(saltchars) for _ in range(18))
         return salt
@@ -304,4 +305,4 @@ class ArgotGraph:
         return self.cluster
 
     def get_prot_clusters(self):
-        return self.protClusters
+        return self.prot_clusters

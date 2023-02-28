@@ -1,37 +1,33 @@
-from typing import Set
-import NodeInterface
-
-
-class Node(NodeInterface.NodeInterface()):
+class Node:
     def __init__(self):
         self.ontid = ''
         self.parents = set()
         self.children = set()
-        self.parentNodes = {}
-        self.childNodes = {}
+        self.parent_nodes = {}
+        self.child_nodes = {}
         self.id = 0
         self.flag = False
 
-    def set_ont_id(self, ontid: str) -> None:
+    def set_ont_id(self, ontid):
         self.ontid = ontid
 
-    def get_ont_id(self) -> str:
+    def get_ont_id(self):
         return self.ontid
 
-    def equals(self, node) -> bool:
+    def equals(self, node):
         return self.ontid == node.get_ont_id()
 
-    def add_parent(self, edge) -> None:
+    def add_parent(self, edge):
         self.parents.add(edge)
 
-    def add_child(self, edge) -> None:
+    def add_child(self, edge):
         self.children.add(edge)
 
-    def add_parent_node(self, n, e) -> None:
-        self.parentNodes[n] = e
+    def add_parent_node(self, n, e):
+        self.parent_nodes[n] = e
 
-    def add_child_node(self, n, e) -> None:
-        self.childNodes[n] = e
+    def add_child_node(self, n, e):
+        self.child_nodes[n] = e
 
     def get_parents(self):
         return self.parents
@@ -40,44 +36,44 @@ class Node(NodeInterface.NodeInterface()):
         return self.children
 
     def contain_parent(self, n):
-        return n in self.parentNodes
+        return n in self.parent_nodes
 
     def contain_child(self, n):
-        return n in self.childNodes
+        return n in self.child_nodes
 
-    def is_leaf(self) -> bool:
+    def is_leaf(self):
         return len(self.children) == 0
 
-    def set_flag(self, flag: bool) -> None:
+    def set_flag(self, flag):
         self.flag = flag
 
-    def is_flagged(self) -> bool:
+    def is_flagged(self):
         return self.flag
 
-    def remove_child(self, e) -> None:
+    def remove_child(self, e):
         self.children.remove(e)
 
-    def remove_parent(self, e) -> None:
+    def remove_parent(self, e):
         self.parents.remove(e)
 
-    def remove_parent_node(self, n) -> None:
-        p = self.parentNodes[n]
+    def remove_parent_node(self, n):
+        p = self.parent_nodes[n]
         self.remove_parent(p)
-        self.parentNodes.pop(n)
+        self.parent_nodes.pop(n)
 
-    def remove_child_node(self, n) -> None:
-        c = self.childNodes[n]
+    def remove_child_node(self, n):
+        c = self.child_nodes[n]
         self.remove_child(c)
-        self.childNodes.pop(n)
+        self.child_nodes.pop(n)
 
-    def is_root(self) -> bool:
+    def is_root(self):
         return len(self.parents) == 0
 
-    def clean(self) -> None:
+    def clean(self):
         self.flag = False
 
-    def get_id(self) -> int:
+    def get_id(self):
         return self.id
 
-    def set_id(self, idd) -> None:
+    def set_id(self, idd):
         self.id = idd

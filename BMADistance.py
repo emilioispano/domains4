@@ -5,7 +5,7 @@ class BMADistance:
     def __init__(self, distance_method):
         self.distance_method = distance_method
 
-    def semantic_similarity(self, list1, list2, sim_limit=None) -> float:
+    def semantic_similarity(self, list1, list2, sim_limit=None):
         bcol = np.full(len(list2), self.distance_method.get_min_distance())
         brow = np.full(len(list1), self.distance_method.get_min_distance())
 

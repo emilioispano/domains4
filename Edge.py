@@ -1,17 +1,13 @@
-import RelationshipType
-import Node
-
-
 class Edge:
-    def __init__(self, node: Node, rel: RelationshipType):
+    def __init__(self, node, rel):
         self.node = node
         self.rel = rel
 
-    def get_relationship_type(self) -> RelationshipType:
+    def get_relationship_type(self):
         return self.rel
 
-    def __str__(self) -> str:
+    def __str__(self):
         return str(self.rel)
 
-    def get_node(self) -> Node:
+    def get_node(self):
         return self.node

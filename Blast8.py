@@ -3,27 +3,26 @@
 from typing import Set
 import logging
 import math
-import AlignmentParser
 import LoadInRam
 import Settings
 
 
-class Blast8(AlignmentParser.AlignmentParser()):
-    def __init__(self, file_or_lir, thr, sg) -> None:
+class Blast8:
+    def __init__(self, file_or_lir, thr, sg):
         self.sg = sg
-        self.targets: Set[str] = set()
+        self.targets = set()
         self.settings = Settings.Settings().init()
         self.counthit = 0
-        self.bufferuid: Set[str] = set()
+        self.bufferuid = set()
 
         if isinstance(file_or_lir, str):
             self.read_file(file_or_lir, thr)
-        elif isinstance(file_or_lir, LoadInRam.LoadInRam()):
+        elif isinstance(file_or_lir, LoadInRam.LoadInRam):
             self.read_data(file_or_lir, thr)
         else:
             raise ValueError("Expected either a file path or a LoadInRam instance")
 
-    def read_file(self, file: str, thr: float) -> None:
+    def read_file(self, file, thr):
         self.bufferuid = set()
         try:
             with open(file, 'r') as f:
@@ -59,7 +58,7 @@ class Blast8(AlignmentParser.AlignmentParser()):
         except IOError as ie:
             logging.getLogger("Blast8").log(0, None, ie)
 
-    def read_data(self, lir: LoadInRam, thr: float) -> None:
+    def read_data(self, lir, thr):
         self.bufferuid = set()
         lines = lir.get_content().split('\n')
 

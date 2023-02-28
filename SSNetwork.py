@@ -1,12 +1,17 @@
-from typing import List, Set
-from goutility4 import Modularity
-from jgrapht.alg.connectivity import ConnectivityInspector
-from jgrapht.graph.builder import GraphTypeBuilder
-from jgrapht.graph import DefaultWeightedEdge, SimpleWeightedGraph, AsSubgraph, AsWeightedGraph
+import Modularity
+from py4j import java_gateway
+
+gateway = java_gateway.JavaGateway().launch_gateway(port=0, classpath='jgrapht-core-1.3.0.jar')
+ConnectivityInspector = gateway.jvm.org.jgrapht.alg.connettivity.ConnectivityInspector
+GraphTypeBuilder = gateway.jvm.org.jgrapht.graph.builder.GraphTypeBuilder
+DefaultWeightedEdge = gateway.jvm.org.jgrapht.graph.DefaultWeightedEdge
+SimpleWeightedGraph = gateway.jvm.org.jgrapht.graph.SimpleWeightedGraph
+AsSubgraph = gateway.jvm.org.jgrapht.graph.AsSubgraph
+AsWeightedGraph = gateway.jvm.org.jgrapht.graph.AsWeightedGraph
 
 
 class SSNetwork:
-    def __init__(self, query: str, sg: SimpleWeightedGraph[str, DefaultWeightedEdge]):
+    def __init__(self, query, sg):
         self.query = query
         self.modularity = None
 
@@ -22,14 +27,14 @@ class SSNetwork:
         else:
             self.modularity = None
 
-    def get_all_clusters(self) -> List[Set[str]]:
+    def get_all_clusters(self):
         clusters = []
         if self.modularity:
             for g in self.modularity.get_clusters():
                 clusters.append(g.vertex_set())
         return clusters
 
-    def get_cluster(self) -> Set[str]:
+    def get_cluster(self):
         cluster = set()
         if self.modularity:
             for g in self.modularity.get_clusters():

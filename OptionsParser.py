@@ -19,19 +19,13 @@ class OptionsParser:
         self.parser.add_argument('-p', '--print', help='Print gml graph', action='store_true')
         self.parser.add_argument('-r', '--rom', help='Use ROM for temporary files instead of RAM', nargs='?')
         self.parser.add_argument('-t', '--threads', help='Number of threads', nargs='?')
-        self.parser.add_argument('-h', '--help', help='Print this help message', action='store_true')
         self.args = self.parser.parse_args()
 
     def parse_options(self, settings):
-        if self.args.help:
-            self.parser.print_help()
-            return False
-
         if self.args.input:
-            settings.setDomFile(self.args.input)
+            settings.set_dom_file(self.args.input)
         else:
             self.logger.error('Input file is missing')
-            self.parser.print_help()
             return False
 
         if self.args.setting:
@@ -41,11 +35,10 @@ class OptionsParser:
                 settings.read_settings()
             else:
                 self.logger.error('Setting file is missing')
-                self.parser.print_help()
                 return False
 
         if self.args.nwth:
-            settings.setNwth(float(self.args.nwth))
+            settings.set_nwth(float(self.args.nwth))
 
         if self.args.output:
             try:
@@ -82,7 +75,7 @@ class OptionsParser:
 
         return True
 
-    def print_help(self, parser=None) -> None:
+    def print_help(self, parser=None):
         if parser is None:
             print('you need help')
         else:

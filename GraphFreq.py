@@ -1,20 +1,9 @@
-from typing import TypeVar
-from pymongo import MongoClient
-from pymongo.collection import Collection
-from pymongo.cursor import Cursor
 from math import log
 import NodeNotFoundException
 import Direction
-import GOGraphOWL
-import NodeExt
 import NodeFreq
 import OntNamespace
 import Relation
-
-from typing import Dict
-
-W = TypeVar('W', bound=NodeFreq.NodeFreq())
-E = TypeVar('E', bound=NodeExt.NodeExt())
 
 
 class GraphFreq:
@@ -43,7 +32,7 @@ class GraphFreq:
             cls._instance = cls()
         return cls._instance
 
-    def init(self, graph, database: MongoClient, collection: str):
+    def init(self, graph, database, collection):
         self.graph = graph
         try:
             self.load_freq_from_mongo(database, collection)
@@ -55,7 +44,7 @@ class GraphFreq:
         except NodeNotFoundException as ex:
             print('o forse era qui?')
 
-    def add_abs_value(self, node: W, w: int):
+    def add_abs_value(self, node, w):
         node.addAbsValue(w)
         for e in self.graph.get_go_parents(node):
             if self.relation.get_relation(e.getRelationshipType()) != Direction.Direction.propagationDown:
@@ -63,16 +52,16 @@ class GraphFreq:
 
     def calc_freq(self):
         mapnode = self.graph.get_node_map()
-        maxw = max(self.graph.get_root(OntNamespace.OntNamespace.biological_process).getAbsValue(), self.graph.get_root(OntNamespace.OntNamespace.molecular_function).getAbsValue())
-        maxw = max(maxw, self.graph.get_root(OntNamespace.OntNamespace.cellular_component).getAbsValue())
+        maxw = max(self.graph.get_root(OntNamespace.OntNamespace.biological_process).get_abs_value(), self.graph.get_root(OntNamespace.OntNamespace.molecular_function).get_abs_value())
+        maxw = max(maxw, self.graph.get_root(OntNamespace.OntNamespace.cellular_component).get_abs_value())
         for ontid, node in mapnode.items():
             if isinstance(node, NodeFreq.NodeFreq()):
                 if node.getOntID() in self.id2freq:
                     node.setRealCount(self.id2freq[node.getOntID()])
-                    absfreq = node.getRealCount() / self.total_terms
-                    node.setRealFrequency(absfreq)
+                    absfreq = node.get_real_count() / self.total_terms
+                    node.set_real_frequency(absfreq)
 
-                freq = node.getAbsValue() / maxw
+                freq = node.get_abs_value() / maxw
 
                 if freq > 0:
                     ic = -log(freq)
@@ -85,17 +74,17 @@ class GraphFreq:
                     elif node.getNameSpace() == OntNamespace.OntNamespace.cellular_component:
                         if ic > self.max_cc_ic:
                             self.max_cc_ic = ic
-                node.setFrequency(freq)
+                node.set_frequency(freq)
 
-    def load_freq_from_mongo(self, database: MongoClient, collection: str):
-        coll: Collection = database[collection]
-        cursor: Cursor = coll.find(projection={'_id': False})
+    def load_freq_from_mongo(self, database, collection):
+        coll = database[collection]
+        cursor = coll.find(projection={'_id': False})
         for doc in cursor:
             t = doc["freq"]
             self.id2freq[doc["goid"]] = t
             self.total_terms += t
 
-    def max_bp_ic(self) -> float:
+    def max_bp_ic(self):
         return self.max_bp_ic
 
     def max_mf_ic(self):

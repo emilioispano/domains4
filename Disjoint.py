@@ -12,7 +12,7 @@ class Disjoint:
         self.visited = set()
         self.mapset = {}
 
-    def add_disjoint(self, graph, bpic: float, ccic: float, mfic: float):
+    def add_disjoint(self, graph, bpic, ccic, mfic):
         self.relation = Relation.Relation().instance()
         self.visited = set()
         self.graph = graph
@@ -33,7 +33,7 @@ class Disjoint:
         except NodeNotFoundException as ex:
             print('cosa ciera qui?')
 
-    def start(self, root, ic: float) -> None:
+    def start(self, root, ic):
         edges = self.graph.get_gochildren(root)
         for e in edges:
             if e.get_node().is_gonode():
@@ -41,7 +41,7 @@ class Disjoint:
                 for goid, parents in disjoint.items():
                     self.graph.get_gonode(goid).add_disjoint(parents)
 
-    def find_disjoint(self, node, ic: float) -> Dict[str, Set[str]]:
+    def find_disjoint(self, node, ic):
         buffer = {}
 
         for e in self.graph.get_gochildren(node):
@@ -59,7 +59,7 @@ class Disjoint:
 
         return self.get_disjoint(buffer)
 
-    def walk_descendants(self, n, parent: str, buffer: Dict[str, Set[str]]) -> None:
+    def walk_descendants(self, n, parent, buffer):
         if n.get_ontid() in self.mapset:
             for goid in self.mapset[n.get_ontid()]:
                 buffer[goid].add(parent)
@@ -76,7 +76,7 @@ class Disjoint:
                         self.walk_descendants(e.get_node(), parent, buffer)
 
     @staticmethod
-    def get_disjoint(buffer: Dict[str, Set[str]]) -> Dict[str, Set[str]]:
+    def get_disjoint(buffer):
         disjoint = {}
 
         markers = list(buffer.keys())
